@@ -23,44 +23,28 @@ jobs:
       - name: Merge and Save History
         run: |
           python3 -c "
-import json
-import os
-
-with open('data_30s.json') as f:
-    d30 = json.load(f)
-with open('data_1m.json') as f:
-    d1m = json.load(f)
-
-history = []
-if os.path.exists('history.json'):
-    with open('history.json') as f:
-        history = json.load(f)
-
-for item in d30.get('data', {}).get('list', []):
-    entry = {
-        'period': str(item['issueNumber']),
-        'number': int(item['number']),
-        'mode': '30s',
-        'time': item.get('time', '')
-    }
-    if not any(h['period'] == entry['period'] for h in history):
-        history.append(entry)
-
-for item in d1m.get('data', {}).get('list', []):
-    entry = {
-        'period': str(item['issueNumber']),
-        'number': int(item['number']),
-        'mode': '1m',
-        'time': item.get('time', '')
-    }
-    if not any(h['period'] == entry['period'] for h in history):
-        history.append(entry)
-
-with open('history.json', 'w') as f:
-    json.dump(history, f, indent=2)
-
-print(f'Total entries: {len(history)}')
-"
+          import json
+          import os
+          with open('data_30s.json') as f:
+              d30 = json.load(f)
+          with open('data_1m.json') as f:
+              d1m = json.load(f)
+          history = []
+          if os.path.exists('history.json'):
+              with open('history.json') as f:
+                  history = json.load(f)
+          for item in d30.get('data', {}).get('list', []):
+              entry = {'period': str(item['issueNumber']), 'number': int(item['number']), 'mode': '30s', 'time': item.get('time', '')}
+              if not any(h['period'] == entry['period'] for h in history):
+                  history.append(entry)
+          for item in d1m.get('data', {}).get('list', []):
+              entry = {'period': str(item['issueNumber']), 'number': int(item['number']), 'mode': '1m', 'time': item.get('time', '')}
+              if not any(h['period'] == entry['period'] for h in history):
+                  history.append(entry)
+          with open('history.json', 'w') as f:
+              json.dump(history, f, indent=2)
+          print(f'Total entries: {len(history)}')
+          "
       
       - name: Commit and Push
         run: |
