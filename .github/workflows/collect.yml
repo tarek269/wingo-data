@@ -2,7 +2,7 @@ name: Wingo Data Collector
 
 on:
   schedule:
-    - cron: '*/1 * * * *'
+    - cron: '*/2 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -12,29 +12,72 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Fetch 30s Data
-        run: curl -s "https://draw.ar-lottery01.com/WinGo/WinGo_30S/GetHistoryIssuePage.json" > data30.json
-      - name: Fetch 1m Data
-        run: curl -s "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json" > data1m.json
-      - name: Merge Data
+      
+      - name: Download 30s Data
         run: |
-          python3 <<EOF
+          curl -L -o data30.json "https://draw.ar-lottery01.com/WinGo/WinGo_30S/GetHistoryIssuePage.json"
+          cat data30.json | head -c 200
+      
+      - name: Download 1m Data
+        run: |
+          curl -L -o data1m.json "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json"
+          cat data1m.json | head -c 200
+      
+      - name: Merge and Save
+        run: |
+          python3 << 'EOF'
           import json, os
-          data = []
+          
+          # Read existing history
+          history = []
           if os.path.exists('history.json'):
-              with open('history.json') as f: data = json.load(f)
-          for f in ['data30.json','data1m.json']:
-              with open(f) as x:
-                  for i in json.load(x).get('data',{}).get('list',[]):
-                      e={'period':str(i['issueNumber']),'number':int(i['number']),'mode':f[:5]}
-                      if not any(d['period']==e['period'] for d in data): data.append(e)
-          with open('history.json','w') as f: json.dump(data, f, indent=2)
-          print('Saved', len(data), 'entries')
+              with open('history.json', 'r') as f:
+                  try:
+                      history = json.load(f)
+                  except:
+                      history = []
+          
+          # Process 30s data
+          try:
+              with open('data30.json', 'r') as f:
+                  d30 = json.load(f)
+              for item in d30.get('data', {}).get('list', []):
+                  entry = {
+                      'period': str(item['issueNumber']),
+                      'number': int(item['number']),
+                      'mode': '30s'
+                  }
+                  if not any(h['period'] == entry['period'] for h in history):
+                      history.append(entry)
+          except Exception as e:
+              print('Error reading 30s data:', e)
+          
+          # Process 1m data
+          try:
+              with open('data1m.json', 'r') as f:
+                  d1m = json.load(f)
+              for item in d1m.get('data', {}).get('list', []):
+                  entry = {
+                      'period': str(item['issueNumber']),
+                      'number': int(item['number']),
+                      'mode': '1m'
+                  }
+                  if not any(h['period'] == entry['period'] for h in history):
+                      history.append(entry)
+          except Exception as e:
+              print('Error reading 1m data:', e)
+          
+          # Save
+          with open('history.json', 'w') as f:
+              json.dump(history, f, indent=2)
+          
+          print(f'Total entries: {len(history)}')
           EOF
-      - name: Push
+      
+      - name: Check and Push
         run: |
-          git config user.name "bot"
-          git config user.email "bot@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add history.json
-          git commit -m "update" || echo "no changes"
-          git push
+          git diff --cached --quiet || git commit -m "Update data $(date '+%H:%M')"
+          git push || echo "Push skipped"
