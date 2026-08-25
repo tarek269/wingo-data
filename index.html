@@ -3,23 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 Wingo Data Viewer</title>
+    <title>📊 Wingo 24/7 ডেটা ভিউয়ার</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
             background: #0b0b1a;
             color: #fff;
             font-family: Arial, sans-serif;
             padding: 20px;
         }
-        .container {
-            max-width: 600px;
-            margin: auto;
-        }
+        .container { max-width: 600px; margin: auto; }
         .card {
             background: #1a1a2e;
             padding: 20px;
@@ -57,25 +50,19 @@
             margin-bottom: 16px;
         }
         .live-dot {
-            width: 10px;
-            height: 10px;
+            width: 10px; height: 10px;
             background: #00ffa8;
             border-radius: 50%;
             display: inline-block;
             animation: pulse 1.2s infinite;
         }
         @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.3;
-            }
+            0%,100%{opacity:1}
+            50%{opacity:0.3}
         }
         .stats {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(4,1fr);
             gap: 8px;
             margin-bottom: 16px;
         }
@@ -85,27 +72,12 @@
             border-radius: 12px;
             text-align: center;
         }
-        .stat-box .num {
-            font-size: 22px;
-            font-weight: 900;
-        }
-        .stat-box .label {
-            font-size: 10px;
-            color: #888;
-            text-transform: uppercase;
-        }
-        .green {
-            color: #00ffa8;
-        }
-        .gold {
-            color: #ffc93c;
-        }
-        .blue {
-            color: #22d3ee;
-        }
-        .purple {
-            color: #c084fc;
-        }
+        .stat-box .num { font-size: 22px; font-weight: 900; }
+        .stat-box .label { font-size: 10px; color: #888; text-transform: uppercase; }
+        .green { color: #00ffa8; }
+        .gold { color: #ffc93c; }
+        .blue { color: #22d3ee; }
+        .purple { color: #c084fc; }
         .history {
             max-height: 400px;
             overflow-y: auto;
@@ -117,19 +89,10 @@
             border-bottom: 1px solid #1a1a3a;
             font-size: 14px;
         }
-        .history-item .period {
-            color: #888;
-            font-size: 12px;
-        }
-        .history-item .num {
-            font-weight: bold;
-        }
-        .history-item .num.big {
-            color: #f97316;
-        }
-        .history-item .num.small {
-            color: #22d3ee;
-        }
+        .history-item .period { color: #888; font-size: 12px; }
+        .history-item .num { font-weight: bold; }
+        .history-item .num.big { color: #f97316; }
+        .history-item .num.small { color: #22d3ee; }
         .filter-bar {
             display: flex;
             gap: 8px;
@@ -160,28 +123,21 @@
             font-weight: bold;
             cursor: pointer;
         }
-        .footer {
-            text-align: center;
-            font-size: 10px;
-            color: #444;
-            margin-top: 16px;
-        }
+        .footer { text-align: center; font-size: 10px; color: #444; margin-top: 16px; }
+        .last-update { font-size:12px; color:#888; margin-bottom:12px; }
+        .empty-state { text-align:center; color:#555; padding:30px 0; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="card header">
-            <h1>📊 WINGO DATA</h1>
+            <h1>📊 WINGO 24/7 DATA</h1>
             <p style="color:#888;font-size:12px;">২৪/৭ অটো কালেক্ট • যেকোনো সময় দেখুন</p>
-            <div style="margin-top:8px;">
-                <span class="badge">⏰ ২৪/৭ চলছে</span>
-            </div>
+            <div style="margin-top:8px;"><span class="badge">⏰ ২৪/৭ চলছে</span></div>
         </div>
 
         <div class="status-bar">
-            <div>
-                <span class="live-dot"></span> <span id="statusText">সংযুক্ত</span>
-            </div>
+            <div><span class="live-dot"></span> <span id="statusText">সংযুক্ত</span></div>
             <span id="dataCount">ডেটা: ০</span>
         </div>
 
@@ -201,9 +157,9 @@
                 </div>
                 <button class="refresh-btn" onclick="loadData()">🔄 রিফ্রেশ</button>
             </div>
-            <div id="lastUpdate" style="font-size:12px;color:#888;margin-bottom:12px;">শেষ আপডেট: লোড হচ্ছে...</div>
+            <div class="last-update" id="lastUpdate">শেষ আপডেট: লোড হচ্ছে...</div>
             <div class="history" id="historyList">
-                <div style="text-align:center;color:#555;padding:30px 0;">⏳ ডেটা লোড হচ্ছে...</div>
+                <div class="empty-state">⏳ ডেটা লোড হচ্ছে...</div>
             </div>
         </div>
 
@@ -211,7 +167,7 @@
     </div>
 
     <script>
-        // ⚠️ শুধু এখানে আপনার ইউজারনেম এবং রেপো নাম দিন
+        // আপনার ইউজারনেম এবং রেপো নাম দিন
         const USERNAME = 'tarek269';
         const REPO = 'wingo-data';
         const DATA_URL = `https://raw.githubusercontent.com/${USERNAME}/${REPO}/main/history.json`;
@@ -221,34 +177,23 @@
 
         async function loadData() {
             try {
-                document.getElementById('historyList').innerHTML =
-                    '<div style="text-align:center;color:#555;padding:30px 0;">⏳ ডেটা লোড হচ্ছে...</div>';
-
+                document.getElementById('historyList').innerHTML = '<div class="empty-state">⏳ ডেটা লোড হচ্ছে...</div>';
                 const res = await fetch(DATA_URL + '?t=' + Date.now());
                 if (!res.ok) throw new Error('HTTP ' + res.status);
-
                 const data = await res.json();
                 if (!Array.isArray(data) || data.length === 0) throw new Error('কোনো ডেটা নেই');
-
                 allData = data;
                 renderData(currentFilter);
                 updateStats(allData);
-                document.getElementById('lastUpdate').textContent =
-                    `শেষ আপডেট: ${new Date().toLocaleString('bn-BD', {timeZone:'Asia/Dhaka'})}`;
+                document.getElementById('lastUpdate').textContent = `শেষ আপডেট: ${new Date().toLocaleString('bn-BD', {timeZone:'Asia/Dhaka'})}`;
                 document.getElementById('statusText').textContent = '✅ সংযুক্ত';
                 document.getElementById('dataCount').textContent = `ডেটা: ${allData.length}`;
-
             } catch (e) {
                 document.getElementById('historyList').innerHTML = `
-                    <div style="text-align:center;color:#ff6b6b;padding:20px 0;">
+                    <div class="empty-state">
                         ❌ ডেটা লোড করা যায়নি<br>
                         <small style="color:#888;">${e.message}</small><br><br>
-                        <small style="color:#666;">
-                            ⚠️ চেক করুন:<br>
-                            • Repository Public কিনা<br>
-                            • URL ঠিক কিনা<br>
-                            • history.json আছে কিনা
-                        </small>
+                        <small style="color:#666;">⚠️ চেক করুন: Repository Public কিনা, URL ঠিক কিনা</small>
                     </div>
                 `;
                 document.getElementById('statusText').textContent = '⚠️ সংযোগ নেই';
@@ -260,14 +205,11 @@
             let filtered = allData;
             if (filter === '30s') filtered = allData.filter(d => d.mode === '30s');
             else if (filter === '1m') filtered = allData.filter(d => d.mode === '1m');
-
             filtered.sort((a, b) => parseInt(b.period) - parseInt(a.period));
-
             if (filtered.length === 0) {
-                list.innerHTML = '<div style="text-align:center;color:#555;padding:20px 0;">📭 এই ফিল্টারে কোনো ডেটা নেই</div>';
+                list.innerHTML = '<div class="empty-state">📭 এই ফিল্টারে কোনো ডেটা নেই</div>';
                 return;
             }
-
             const seen = new Set();
             const unique = filtered.filter(d => {
                 const key = d.period + '|' + d.mode;
@@ -275,20 +217,17 @@
                 seen.add(key);
                 return true;
             });
-
             list.innerHTML = unique.slice(0, 500).map(item => {
                 const num = parseInt(item.number);
                 const cls = num >= 5 ? 'big' : 'small';
                 const label = num >= 5 ? '🔴 BIG' : '🔵 SMALL';
                 const mode = item.mode === '30s' ? '⚡30s' : '⏱️1m';
-                return `
-                    <div class="history-item">
-                        <span class="period">#${item.period}</span>
-                        <span class="num ${cls}">${num}</span>
-                        <span style="font-size:11px;color:#666;">${mode}</span>
-                        <span style="font-size:11px;color:#888;">${label}</span>
-                    </div>
-                `;
+                return `<div class="history-item">
+                    <span class="period">#${item.period}</span>
+                    <span class="num ${cls}">${num}</span>
+                    <span style="font-size:11px;color:#666;">${mode}</span>
+                    <span style="font-size:11px;color:#888;">${label}</span>
+                </div>`;
             }).join('');
             document.getElementById('dataCount').textContent = `ডেটা: ${unique.length}`;
         }
@@ -309,11 +248,9 @@
             renderData(filter);
         }
 
-        // প্রতি ২ মিনিটে রিফ্রেশ
         setInterval(loadData, 120000);
         loadData();
         console.log('📊 Wingo Viewer Started');
-        console.log('📡 Data URL:', DATA_URL);
     </script>
 </body>
-</html>
+            </html>
