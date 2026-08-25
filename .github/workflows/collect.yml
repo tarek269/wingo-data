@@ -1,6 +1,6 @@
 name: Wingo 1Min Signal (Telegram)
 
-on:
+:
   schedule:
     - cron: '*/1 * * * *'
   workflow_dispatch:
@@ -25,7 +25,7 @@ jobs:
           
           # ===== আপনার Telegram Credentials =====
           BOT_TOKEN = "8601346832:AAENbaL-vErIXqayABEJMFqdxEQWxwt4stg"
-          CHAT_ID = "6678981102"  # ← আপনার Chat ID
+          CHAT_ID = "6678981102"
           # =====================================
           
           # টেস্ট মেসেজ
