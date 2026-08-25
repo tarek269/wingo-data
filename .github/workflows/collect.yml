@@ -1,8 +1,8 @@
-name: Wingo Data Collector
+name: Wingo 1Min Signal (Telegram)
 
 on:
   schedule:
-    - cron: '*/2 * * * *'
+    - cron: '*/1 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -13,43 +13,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Download 30s Data
-        run: |
-          curl -L -o data30.json "https://draw.ar-lottery01.com/WinGo/WinGo_30S/GetHistoryIssuePage.json"
-      
-      - name: Download 1m Data
+      - name: Download 1Min Data
         run: |
           curl -L -o data1m.json "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json"
       
-      - name: Merge and Save
+      - name: Process & Send Signal
         run: |
           python3 << 'EOF'
-          import json, os
+          import json, os, requests
+          from datetime import datetime
+          
+          # ===== আপনার Telegram Credentials দিন =====
+          BOT_TOKEN = "8601346832:AAENbaL-vErIXqayABEJMFqdxEQWxwt4stg"  # ← এখানে আপনার টোকেন দিন
+          CHAT_ID = "6678981102"      # ← এখানে আপনার চ্যাট আইডি দিন
+          # =========================================
+          
+          # ডেটা লোড
+          with open('data1m.json') as f:
+              data = json.load(f)
+          
+          # ইতিহাস লোড
           history = []
           if os.path.exists('history.json'):
-              with open('history.json', 'r') as f:
-                  try: history = json.load(f)
-                  except: history = []
-          for fname in ['data30.json', 'data1m.json']:
-              with open(fname, 'r') as f:
-                  data = json.load(f)
-              for item in data.get('data', {}).get('list', []):
-                  entry = {
-                      'period': str(item['issueNumber']),
-                      'number': int(item['number']),
-                      'mode': '30s' if '30s' in fname else '1m'
-                  }
-                  if not any(h['period'] == entry['period'] for h in history):
-                      history.append(entry)
-          with open('history.json', 'w') as f:
-              json.dump(history, f, indent=2)
-          print(f'Total entries: {len(history)}')
-          EOF
-      
-      - name: Push
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add history.json
-          git diff --cached --quiet || git commit -m "Update data $(date '+%H:%M')"
-          git push || echo "Push skipped"
+              with open('history.json') as f:
