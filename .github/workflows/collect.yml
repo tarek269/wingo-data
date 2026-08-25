@@ -1,0 +1,23 @@
+name: Wingo Signal
+
+on:
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -s "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json" > data.json
+          python3 -c "
+import json, requests
+with open('data.json') as f:
+    d=json.load(f)
+n=d['data']['list'][0]['number']
+p=d['data']['list'][0]['issueNumber']
+s='BIG' if int(n)>=5 else 'SMALL'
+msg=f'🎯 Period: #{p}\n🔢 Number: {n}\n📏 Size: {s}'
+url=f'https://api.telegram.org/bot8601346832:AAENbaL-vErIXqayABEJMFqdxEQWxwt4stg/sendMessage'
+requests.post(url, json={'chat_id':'6678981102','text':msg})
+print('Sent!')
+"
