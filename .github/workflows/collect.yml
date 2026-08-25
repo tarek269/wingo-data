@@ -23,10 +23,20 @@ jobs:
           import json, os, requests
           from datetime import datetime
           
-          # ===== আপনার Telegram Credentials দিন =====
-          BOT_TOKEN = "8601346832:AAENbaL-vErIXqayABEJMFqdxEQWxwt4stg"  # ← এখানে আপনার টোকেন দিন
-          CHAT_ID = "6678981102"      # ← এখানে আপনার চ্যাট আইডি দিন
-          # =========================================
+          # ===== আপনার Telegram Credentials =====
+          BOT_TOKEN = "8601346832:AAENbaL-vErIXqayABEJMFqdxEQWxwt4stg"
+          CHAT_ID = "6678981102"  # ← আপনার Chat ID
+          # =====================================
+          
+          # টেস্ট মেসেজ
+          try:
+              r = requests.post(
+                  f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+                  json={'chat_id': CHAT_ID, 'text': '✅ Bot is active! Waiting for new data...', 'parse_mode': 'Markdown'}
+              )
+              print("Test message sent!" if r.ok else f"Test failed: {r.text}")
+          except Exception as e:
+              print(f"Test error: {e}")
           
           # ডেটা লোড
           with open('data1m.json') as f:
@@ -36,3 +46,76 @@ jobs:
           history = []
           if os.path.exists('history.json'):
               with open('history.json') as f:
+                  history = json.load(f)
+          
+          # নতুন এন্ট্রি
+          new_entries = []
+          for item in data.get('data', {}).get('list', []):
+              entry = {
+                  'period': str(item['issueNumber']),
+                  'number': int(item['number']),
+                  'mode': '1m',
+                  'time': item.get('time', '')
+              }
+              if not any(h['period'] == entry['period'] for h in history):
+                  history.append(entry)
+                  new_entries.append(entry)
+          
+          # সেভ
+          with open('history.json', 'w') as f:
+              json.dump(history, f, indent=2)
+          
+          # Signal পাঠান
+          if new_entries:
+              latest = new_entries[-1]
+              num = latest['number']
+              period = latest['period']
+              
+              size = "🔴 BIG" if num >= 5 else "🔵 SMALL"
+              
+              if len(history) >= 3:
+                  prev1 = history[-2]['number']
+                  prev2 = history[-3]['number']
+                  
+                  if prev1 >= 5 and prev2 >= 5:
+                      pred = "SMALL"
+                  elif prev1 < 5 and prev2 < 5:
+                      pred = "BIG"
+                  else:
+                      pred = "BIG" if num >= 5 else "SMALL"
+                  
+                  actual = "BIG" if num >= 5 else "SMALL"
+                  result = "✅ WIN" if pred == actual else "❌ LOSS"
+              else:
+                  pred = "N/A"
+                  result = "⏳ WAITING"
+              
+              msg = f"""🎯 *Wingo 1Min Signal*
+
+📌 Period: #{period}
+🔢 Number: {num}
+📏 Size: {size}
+
+📊 Prediction: {pred}
+🏆 Result: {result}
+
+⏰ Time: {datetime.now().strftime('%I:%M %p')}
+"""
+              
+              url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+              try:
+                  r = requests.post(url, json={'chat_id': CHAT_ID, 'text': msg, 'parse_mode': 'Markdown'})
+                  print("Signal sent!" if r.ok else f"Failed: {r.text}")
+              except Exception as e:
+                  print(f"Error: {e}")
+          else:
+              print("No new data. Waiting for next period...")
+          EOF
+      
+      - name: Push History
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add history.json
+          git diff --cached --quiet || git commit -m "Update data $(date '+%H:%M')"
+          git push || echo "Push skipped"
